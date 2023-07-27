@@ -1,0 +1,51 @@
+{
+  "fornecedores": [],
+  "produtos": [
+    {
+      "codigo": 1,
+      "descricao": "Produto 1",
+      "dataCadastro": "",
+      "valor": 1.5
+    },
+    {
+      "codigo": 2,
+      "descricao": "Produto 2",
+      "dataCadastro": "",
+      "valor": 10
+    },
+    {
+      "codigo": 3,
+      "descricao": "Produto 3",
+      "dataCadastro": "",
+      "valor": 10.5
+    },
+    {
+      "codigo": 4,
+      "descricao": "Produto 4",
+      "dataCadastro": "",
+      "valor": 10
+    },
+    {
+      "codigo": 5,
+      "descricao": "Produto 5",
+      "dataCadastro": "",
+      "valor": 10
+    },
+    {
+      "codigo": 6,
+      "descricao": "Produto 6",
+      "dataCadastro": "",
+      "valor": 10
+    },
+    {
+      "codigo": 7,
+      "descricao": "Produto 7",
+      "dataCadastro": "",
+      "valor": 10
+    }
+  ],
+  "pedidos": [],
+  "auth": {
+    "accessToken": "aaaaaaaaaa.bbbbbbbbbb.cccccccc"
+  }
+}
