@@ -1,33 +1,60 @@
+import moment from 'moment';
 import { Environment } from '../../../environment';
 import { Api } from '../axios-config';
 
+export interface produto {
+  codigo: number;
+  descricao: string;
+  data: Date;
+  valor: number;
+}
 
+export interface fornecedor {
+  razaoSocial: string;
+  cnpj: string;
+  uf: string;
+  email: string;
+  nomeContato: string;
+}
 export interface IListagemPedido {
     codigo: number;
-    dataPedido: Date;
-    codigoProduto: number;
-    quantidadeProduto: number;
-    codigoFornecedor: number;
+    data: string;
+    codProduto: number;
+    produto : produto;
+    fornecedor : fornecedor;
+    quantidade: number;
+    codigoFornecedor: string;
     valorTotal: number;
 }
 
+
 export interface IDetalhePedido {
     codigo: number;
-    dataPedido: Date;
-    codigoProduto: number;
-    quantidadeProduto: number;
-    codigoFornecedor: number;
+    data: string;
+    codProduto: number;
+    quantidade: number;
+    codigoFornecedor: string;
+    //fornecedor : fornecedor;
     valorTotal: number;
+    //produto : produto;
 }
 
 type TPedidossComTotalCount = {
   data: IListagemPedido[];
   totalCount: number;
+  totalSum : string;
 }
 
 const getAll = async (page = 1, filter = ''): Promise<TPedidossComTotalCount | Error> => {
   try {
-    const urlRelativa = `/pedidos?_page=${page}&_limit=${Environment.LIMITE_DE_LINHAS}&codigoFornecedor_like=${filter}`;
+
+    let urlRelativa = `/pedidos?_page=${page}&_limit=${Environment.LIMITE_DE_LINHAS}`;
+
+    if(filter){
+      urlRelativa += `&cnpj_like=${filter}`
+    }else{
+      urlRelativa += `&cnpj_like=_all`
+    }   
 
     const { data, headers } = await Api.get(urlRelativa);
 
@@ -35,6 +62,7 @@ const getAll = async (page = 1, filter = ''): Promise<TPedidossComTotalCount | E
       return {
         data,
         totalCount: Number(headers['x-total-count'] || Environment.LIMITE_DE_LINHAS),
+        totalSum : (headers['x-total-sum'] || '')
       };
     }
 
@@ -50,6 +78,7 @@ const getById = async (codigo: number): Promise<IDetalhePedido | Error> => {
     const { data } = await Api.get(`/pedidos/${codigo}`);
 
     if (data) {
+      data.data = moment(data.data).utcOffset(-3).format('DD/MM/YYYY');
       return data;
     }
 
@@ -62,6 +91,8 @@ const getById = async (codigo: number): Promise<IDetalhePedido | Error> => {
 
 const create = async (dados: Omit<IDetalhePedido, 'codigo'>): Promise<number | Error> => {
   try {
+    console.log('criando')
+    console.log(dados)
     const { data } = await Api.post<IDetalhePedido>('/pedidos', dados);
 
     if (data) {

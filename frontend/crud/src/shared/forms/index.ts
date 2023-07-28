@@ -6,4 +6,3 @@ export * from './useVForm';
 export * from './VSelect';
 export * from './VScope';
 export * from './VForm';
-export * from './VDateField';

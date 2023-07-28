@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { useAppThemeContext, useDrawerContext } from "../../context";
-import { ListContext } from "@mui/base/useList";
 import { useMatch, useNavigate, useResolvedPath } from "react-router-dom";
 
 interface IListItemLinkProps {
@@ -101,7 +100,7 @@ export const MenuLateral: React.FC<IMenuLateralProps> = ({ children }) => {
             <List component="nav">
               <ListItemButton onClick={toggleTheme}>
                 <ListItemIcon>
-                  <Icon>dark_mode</Icon>
+                  <Icon>light_mode</Icon>
                 </ListItemIcon>
                 <ListItemText primary={"Alternar tema"} />
               </ListItemButton>

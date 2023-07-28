@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as yup from 'yup';
 
 import { ProdutosService } from "../../shared/services/api/produtos/ProdutosService";
-import { IVFormErrors,  VDateField,  VForm, VTextField, useVForm } from "../../shared/forms";
+import { IVFormErrors,  VForm, VTextField, useVForm } from "../../shared/forms";
 import { FerramentasDeDetalhe } from "../../shared/components";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { Environment } from "../../shared/environment";
@@ -14,14 +14,14 @@ import { Environment } from "../../shared/environment";
 interface IFormData {
   //codigo : number,
   descricao: string;
-  data: Date;
+  data: string;
   valor : number;
 }
 
 const formValidationSchema: yup.SchemaOf<IFormData> = yup.object().shape({
   //codigo: yup.number().required().default(0),
   descricao: yup.string().required().min(3),
-  data : yup.date().default(new Date()),
+  data : yup.string().required(),
   valor : yup.number().required().min(0),
 });
 
@@ -33,7 +33,7 @@ export const DetalheDeProdutos: React.FC = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [descr, setDescr] = useState('');
-    console.log('Inicio 0')
+    console.log(codigo)
      useEffect(() => {
       console.log('Inicio')
       if (codigo !== 'novo') {
@@ -57,7 +57,7 @@ export const DetalheDeProdutos: React.FC = () => {
         formRef.current?.setData({
           descricao: '',
           valor: undefined,
-          data: new Date(),
+          data: '',
         });
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,9 +133,6 @@ export const DetalheDeProdutos: React.FC = () => {
       }
     };
 
-  function dayjs(arg0: string) {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <LayoutBaseDePagina
@@ -191,7 +188,12 @@ export const DetalheDeProdutos: React.FC = () => {
 
             <Grid container item direction="row" spacing={2}>
               <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
-              <VDateField fullWidth name="data" label="Data cadastro"  disabled={isLoading} />
+              <VTextField
+                  fullWidth
+                  name="data"
+                  disabled={isLoading}
+                  label="Data cadastro"
+                />
               </Grid>
             </Grid>
             <Grid container item direction="row" spacing={2}>
@@ -204,11 +206,6 @@ export const DetalheDeProdutos: React.FC = () => {
                 />
               </Grid>
             </Grid>
-            {/* <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                <AutoCompleteCidade isExternalLoading={isLoading} />
-              </Grid>
-            </Grid> */}
           </Grid>
         </Box>
       </VForm>

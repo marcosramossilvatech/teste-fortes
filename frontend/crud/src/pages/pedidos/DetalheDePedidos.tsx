@@ -3,80 +3,84 @@ import { Box, Grid,  LinearProgress, Paper, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import * as yup from 'yup';
 
-import { IVFormErrors, VForm, VTextField, useVForm } from "../../shared/forms";
+import { ProdutosService } from "../../shared/services/api/produtos/ProdutosService";
+import { IVFormErrors,  VForm, VTextField, useVForm } from "../../shared/forms";
 import { FerramentasDeDetalhe } from "../../shared/components";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { Environment } from "../../shared/environment";
-import { FornecedoresService } from "../../shared/services/api/fornecedores/FornecedoresService";
+import { AutoCompleteFornecedor } from "./components/AutoCompleteFornecedor";
+import { AutoCompleteProduto } from "./components/AutoCompleteProduto";
+import { PedidosService } from "../../shared/services/api/pedidos/PedidosService";
 
 
 
 interface IFormData {
-  razaoSocial: string;
-  cnpj: string;
-  uf: string;
-  email: string;
-  nomeContato: string;
-};
+  data: string;
+  codProduto: number;
+  quantidade: number;
+  codigoFornecedor: string;
+  valorTotal: number;
+}
 
 const formValidationSchema: yup.SchemaOf<IFormData> = yup.object().shape({
-  razaoSocial: yup.string().required().min(3),
-  cnpj: yup.string().required().min(3),
-  uf: yup.string().required().max(2),
-  email: yup.string().required().min(3),
-  nomeContato:yup.string().required().min(3)
+  data: yup.string().default(new Date().toString()),
+  codProduto: yup.number().required(),
+  quantidade: yup.number().required(),
+  codigoFornecedor: yup.string().required(),
+  valorTotal: yup.number().required(),
 });
 
 
-export const DetalheDeFornecedores: React.FC = () => {
+export const DetalheDePedidos: React.FC = () => {
     const { formRef, save, saveAndClose, isSaveAndClose } = useVForm();
-    const {cnpj = 'novo'} = useParams<'cnpj'>();
+    const {codigo = 'novo'} = useParams<'codigo'>();
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(false);
-    const [razao, setRazao] = useState('');
-
+    const [descr, setDescr] = useState('');
+    console.log(codigo)
      useEffect(() => {
-
-      if (cnpj !== 'novo') {
+      console.log('Inicio')
+      if (codigo !== 'novo') {
         setIsLoading(true);
   
-        FornecedoresService.getById(cnpj)
+        PedidosService.getById(Number(codigo))
           .then((result) => {
            setIsLoading(false);
-
+            console.log('edit')
+            console.log(result)
             if (result instanceof Error) {
               alert(result.message);
-              navigate('/fornecedores');
+              navigate('/pedidos');
             } else {
-              setRazao(result.razaoSocial);
+              setDescr(result.codigo.toString());
               console.log(result);
               formRef.current?.setData(result);
             }
           });
       } else {
         formRef.current?.setData({
-          razaoSocial : '',
-          cnpj : '',
-          uf : '',
-          email : '',
-          nomeContato : '',
+          data: undefined,
+          codProduto: undefined,
+          quantidade: undefined,
+          codigoFornecedor: undefined,
+          valorTotal: undefined,
         });
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cnpj]);
+    }, [codigo]);
 
    
     const handleSave = (dados: IFormData) => {
-
+      console.log(dados);
       formValidationSchema
         .validate(dados, { abortEarly: false })
         .then((dadosValidados) => {
           setIsLoading(true);
-  
-          if (cnpj === 'novo') {
-
-            FornecedoresService
+          console.log('validado');
+          if (codigo === 'novo') {
+            console.log('criando');
+            PedidosService
               .create(dadosValidados)
               .then((result) => {
                 setIsLoading(false);
@@ -85,16 +89,16 @@ export const DetalheDeFornecedores: React.FC = () => {
                   alert(result.message);
                 } else {
                   if (isSaveAndClose()) {
-                    navigate('/fornecedores');
+                    navigate('/pedidos');
                   } else {
-                    navigate(`/fornecedores/detalhe/${result}`);
+                    navigate(`/pedidos/detalhe/${result}`);
                   }
                 }
               });
           } else {
-            console.log('Alteração');
-            FornecedoresService
-              .updateById(cnpj, { ...dadosValidados })
+            console.log('editando');
+            PedidosService
+              .updateById(Number(codigo), {codigo: Number(codigo), ...dadosValidados })
               .then((result) => {
                 setIsLoading(false);
   
@@ -102,7 +106,7 @@ export const DetalheDeFornecedores: React.FC = () => {
                   alert(result.message);
                 } else {
                   if (isSaveAndClose()) {
-                    navigate('/fornecedores');
+                    navigate('/pedidos');
                   }
                 }
               });
@@ -120,16 +124,16 @@ export const DetalheDeFornecedores: React.FC = () => {
           formRef.current?.setErrors(validationErrors);
         });
     };
-    const handleDelete=(cnpj: string) => {
+    const handleDelete=(codigo: number) => {
       // eslint-disable-next-line no-restricted-globals
       if (confirm(Environment.CONFIRMACAO_DELETE)) {
-        FornecedoresService.deleteById(cnpj)
+        ProdutosService.deleteById(codigo)
           .then(result => {
             if (result instanceof Error) {
               alert(result.message);
             } else {
               alert(Environment.APAGADO_SUCESSO);
-              navigate('/fornecedores');
+              navigate('/pedidos');
             }
           });
       }
@@ -138,21 +142,21 @@ export const DetalheDeFornecedores: React.FC = () => {
   return (
     <LayoutBaseDePagina
       titulo={
-        cnpj === "novo"
-          ? "Cadastrando novo fornecedor"
-          : `Editando o fornecedor ${razao}`
+        codigo === "novo"
+          ? "Cadastrando novo pedido"
+          : `Editando o pedido ${descr}`
       }
       barraDeFerramentas={
         <FerramentasDeDetalhe
           textoBotaoNovo="Novo"
           mostrarBotaoSalvarEFechar
-          mostrarBotaoNovo={cnpj !== "novo"}
-          mostrarBotaoApagar={cnpj !== "novo"}
-          aoClicarEmVoltar={() => navigate("/fornecedores")}
-          aoClicarEmNovo={() => navigate("/fornecedores/detalhe/novo")}
+          mostrarBotaoNovo={codigo !== "novo"}
+          mostrarBotaoApagar={codigo !== "novo"}
+          aoClicarEmVoltar={() => navigate("/pedidos")}
+          aoClicarEmNovo={() => navigate("/pedidos/detalhe/novo")}
           aoClicarEmSalvar={save}
           aoClicarEmSalvarEFechar={saveAndClose}
-          aoClicarEmApagar={() => handleDelete(cnpj)}
+          aoClicarEmApagar={() => handleDelete(Number(codigo))}
         />
       }
     >
@@ -177,13 +181,19 @@ export const DetalheDeFornecedores: React.FC = () => {
 
             <Grid container item direction="row" spacing={2}>
               <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
-                <VTextField
+              <VTextField
                   fullWidth
-                  name="cnpj"
+                  name="data"
                   disabled={isLoading}
-                  label="CNPJ"
-                  // onChange={(e) => setDescr(e.target.value)}
-                />
+                  label="Data do pedido"
+                />       
+              {/* <VDateField fullWidth name="data" label="Data do pedido"  disabled={isLoading} /> */}
+              </Grid>
+            </Grid>
+
+            <Grid container item direction="row" spacing={2}>
+              <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
+                 <AutoCompleteProduto isExternalLoading={isLoading} />
               </Grid>
             </Grid>
 
@@ -191,39 +201,23 @@ export const DetalheDeFornecedores: React.FC = () => {
               <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
                 <VTextField
                   fullWidth
-                  name="razaoSocial"
-                  label="Razão Social"
+                  name="quantidade"
                   disabled={isLoading}
-                  onChange={(e) => setRazao(e.target.value)}
+                  label="Quantidade produto"
                 />
+              </Grid>
+            </Grid>
+            <Grid container item direction="row" spacing={2}>
+              <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
+                 <AutoCompleteFornecedor isExternalLoading={isLoading} />
               </Grid>
             </Grid>
             <Grid container item direction="row" spacing={2}>
               <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
                 <VTextField
                   fullWidth
-                  name="uf"
-                  disabled={isLoading}
-                  label="Estado"                  
-                />
-              </Grid>
-            </Grid>
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
-                <VTextField
-                  fullWidth
-                  name="email"
-                  label="E-mail"
-                  disabled={isLoading}
-                />
-              </Grid>
-            </Grid>
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={12} md={6} lg={4} xl={12}>
-                <VTextField
-                  fullWidth
-                  name="nomeContato"
-                  label="Nome"
+                  name="valorTotal"
+                  label="Valor do produto"
                   disabled={isLoading}
                 />
               </Grid>

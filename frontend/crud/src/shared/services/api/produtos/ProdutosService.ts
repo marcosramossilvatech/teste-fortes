@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { Environment } from '../../../environment';
 import { Api } from '../axios-config';
 
@@ -5,14 +6,14 @@ import { Api } from '../axios-config';
 export interface IListagemProduto {
     codigo: number;
     descricao: string;
-    data: Date;
+    data: string;
     valor: number;
 }
 
 export interface IDetalheProduto {
     codigo: number;
     descricao: string;
-    data: Date;
+    data: string;
     valor: number;
 }
 
@@ -51,8 +52,8 @@ const getById = async (codigo: number): Promise<IDetalheProduto | Error> => {
   try {
     console.log('codigfazendo pesuisa');
     const { data } = await Api.get(`/produtos/${codigo}`);
-    console.log(data);
     if (data) {
+      data.data = moment(data.data).utcOffset(-3).format('DD/MM/YYYY');
       return data;
     }
 

@@ -48,17 +48,24 @@ namespace Api_Fortes.Controllers
         }
 
         [HttpPost("/api/produtos")]
-        public async Task<ActionResult> AddProduto([FromBody] Produto produto)
+        public async Task<ActionResult> AddProduto([FromBody] ProdutoDTO produtoDto)
         {
             try
             {
-                var newProduto = new Produto(produto.Codigo, produto.Descricao, produto.Data, produto.Valor);
+                if (!DateTime.TryParse(produtoDto.Data, out DateTime date))
+                    return BadRequest("Data inválidos");
 
-                if (produto == null)
+                var newProduto = new Produto(produtoDto.Codigo, produtoDto.Descricao, date, produtoDto.Valor);
+
+                if (produtoDto == null)
                     return BadRequest("Dados inválidos");
 
                 if (_service.AddProduto(newProduto))
+                {
+                    produtoDto.Codigo = newProduto.Codigo;
                     return Ok(newProduto);
+                }
+                    
                 else
                     return UnprocessableEntity("Produto não inserido");
             }
@@ -70,17 +77,20 @@ namespace Api_Fortes.Controllers
         }
 
         [HttpPut("/api/produtos/{codigo}")]
-        public async Task<ActionResult> UpdateProduto(int codigo, [FromBody] Produto produto)
+        public async Task<ActionResult> UpdateProduto(int codigo, [FromBody]  ProdutoDTO produtoDto)
         {
             try
             {
-                if (codigo != produto.Codigo || produto == null)
+                if (!DateTime.TryParse(produtoDto.Data, out DateTime date))
+                    return BadRequest("Data inválidos");
+
+                if (codigo != produtoDto.Codigo || produtoDto == null)
                     return BadRequest("Dados inválidos");
 
-                var newProduto = new Produto(produto.Codigo, produto.Descricao, produto.Data, produto.Valor);
-
+                var newProduto = new Produto(produtoDto.Codigo, produtoDto.Descricao,date, produtoDto.Valor);
+                newProduto.Codigo = codigo;
                 if (_service.UpdateProduto(codigo, newProduto))
-                    return Ok(produto);
+                    return Ok(produtoDto);
                 else
                     return UnprocessableEntity("Produto não atualizado");
             }

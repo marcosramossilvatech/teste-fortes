@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import {  useDrawerContext } from "../shared/context";
-import { Dashboard, DetalheDeFornecedores, DetalheDeProdutos, ListagemDeFornecedores, ListagemDeProduto } from "../pages";
+import { Dashboard, DetalheDeFornecedores, DetalheDeProdutos, DetalheDePedidos, ListagemDeFornecedores, ListagemDeProduto, ListagemDePedidos } from "../pages";
 
 
 export const AppRoutes = () => {
@@ -38,7 +38,8 @@ export const AppRoutes = () => {
       <Route path="/produtos/detalhe/:codigo" element={<DetalheDeProdutos/>} />  
       <Route path="/fornecedores" element={<ListagemDeFornecedores/>} /> 
       <Route path="/fornecedores/detalhe/:cnpj" element={<DetalheDeFornecedores/>} /> 
-      <Route path="/pedidos" element={<p>Pedidos</p>} /> 
+      <Route path="/pedidos" element={<ListagemDePedidos/>}/> 
+      <Route path="/pedidos/detalhe/:codigo" element={<DetalheDePedidos/>} /> 
       <Route path="*" element={<Navigate to="/pagina-inicial" />} />
     </Routes>
   );

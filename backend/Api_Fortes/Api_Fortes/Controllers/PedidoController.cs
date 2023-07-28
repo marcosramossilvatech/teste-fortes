@@ -2,6 +2,7 @@
 using Api_Fortes.Service.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace Api_Fortes.Controllers
 {
@@ -17,17 +18,24 @@ namespace Api_Fortes.Controllers
             _service = service;
         }
         [HttpGet("/api/pedidos")]
-        public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidos([FromQuery] int page = 1, [FromQuery] int limit = 5)
+        public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidos(int _page = 1, int _limit = 5, string cnpj_like = "_all")
         {
-            var pedidos = _service.GetPedidos(); 
+            var pedidos = _service.GetPedidos();
+
+            if (!string.IsNullOrWhiteSpace(cnpj_like) && (cnpj_like != "_all"))
+                pedidos = pedidos.Where(x => x.CodigoFornecedor.Contains(cnpj_like)).ToList();
+
             if (pedidos is null)
             {
                 return NotFound("Pedidos não existem");
             }
+
+
             int totalCount = pedidos.Count();
 
-            pedidos = (List<Pedido>)pedidos.Skip((page - 1) * limit).Take(limit);
-            Response.Headers.Add("X-Total-Count", totalCount.ToString());
+            pedidos = pedidos.ToList().Skip((_page - 1) * _limit).Take(_limit).ToList();
+            Response.Headers.Add("x-total-count", totalCount.ToString());
+            Response.Headers.Add("x-total-sum", pedidos.Sum(x=> x.ValorTotal).ToString());
             return Ok(pedidos);
         }
 
@@ -47,13 +55,21 @@ namespace Api_Fortes.Controllers
         {
             try
             {
-                var pedido = new Pedido(pedidoDto.Data, pedidoDto.CodProduto, pedidoDto.Quantidade, pedidoDto.CodigoFornecedor, pedidoDto.ValorTotal);
+                if (!DateTime.TryParse(pedidoDto.Data, out DateTime date))
+                    return BadRequest("Data inválidos");
+
+                          
+                var pedido = new Pedido(date, pedidoDto.CodProduto, pedidoDto.Quantidade, pedidoDto.CodigoFornecedor, pedidoDto.ValorTotal);
 
                 if (pedido == null)
                     return BadRequest("Dados inválidos");
 
                 if (_service.AddPedido(pedido))
+                {
+                    pedidoDto.Codigo = pedido.Codigo;
                     return Ok(pedidoDto);
+                }
+                   
                 else
                     return UnprocessableEntity("Pedido não inserido");
             }
@@ -71,9 +87,9 @@ namespace Api_Fortes.Controllers
             {
                 if (codigo != pedidoDto.Codigo || pedidoDto == null)
                     return BadRequest("Dados inválidos");
-
-                var pedido = new Pedido(pedidoDto.Data, pedidoDto.CodProduto, pedidoDto.Quantidade, pedidoDto.CodigoFornecedor, pedidoDto.ValorTotal);
-
+                var date = Convert.ToDateTime(pedidoDto.Data, CultureInfo.InvariantCulture);
+                var pedido = new Pedido(date, pedidoDto.CodProduto, pedidoDto.Quantidade, pedidoDto.CodigoFornecedor, pedidoDto.ValorTotal);
+                pedido.Codigo = codigo;
                 if (_service.UpdatePedido(codigo, pedido))
                     return Ok(pedidoDto);
                 else
